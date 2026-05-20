@@ -809,53 +809,42 @@ async function sendMessage(){
   const typId='typ_'+Date.now();
   appendTyping(typId);
 
+  // ── URL backend (tuyen_sinh_AI.py) ──────────────────────────────────────
+  // Trên Render: đổi thành URL service của bạn, ví dụ:
+  //   const BACKEND = 'https://ten-service.onrender.com';
+  // Khi chạy local: để nguyên localhost:8000
+  const BACKEND = window._BACKEND_URL || '';   // rỗng = cùng domain (Render)
+
   try{
-    const userContent=[];
+    // Chuẩn bị payload gửi backend
+    const payload = { cau_hoi: text, session_id: activeId || 'default' };
     if(imgForRequest){
-      const base64=imgForRequest.split(',')[1];
-      const mime=imgForRequest.split(';')[0].split(':')[1];
-      userContent.push({type:'image',source:{type:'base64',media_type:mime,data:base64}});
+      payload.image_base64 = imgForRequest.split(',')[1];
+      payload.image_type   = imgForRequest.split(';')[0].split(':')[1];
     }
-    if(text)userContent.push({type:'text',text});
 
-    const history=conv.messages.slice(0,-1).map(m=>({
-      role:m.role==='ai'?'assistant':'user',content:m.content
-    }));
-    history.push({role:'user',content:userContent});
-
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system:`Bạn là trợ lý tư vấn tuyển sinh của Trường THPT Mai Hắc Đế (quận Hoàng Mai, Hà Nội).
-Địa chỉ: Lô 2-10A, số 431 Tam Trinh, Hoàng Mai, Hà Nội.
-SĐT: 024.2239.3635 – 0972.951.456 – 0947.876.098 – 094.7653999
-Website: maihacde.edu.vn | Email: c3maihacde@hanoiedu.vn
-
-Thông tin chính:
-• Trường dân lập, thành lập 2009, sĩ số ≤ 30 học sinh/lớp, ứng dụng CNTT trong giảng dạy
-• Học phí: 2.500.000đ/tháng (2 buổi/ngày, T2–T7) + 1.500.000đ/năm (hỗ trợ xây dựng); học phí ổn định 3 năm
-• Tuyển sinh lớp 10: xét học bạ THCS hoặc theo điểm thi công lập; chỉ tiêu ~320 học sinh
-• Đối tượng: học sinh tốt nghiệp THCS toàn quốc, sinh 2009–2010
-• Kết quả: 100% đỗ tốt nghiệp, >95% đỗ đại học/cao đẳng, giải học sinh giỏi cấp TP
-• Học bổng: con liệt sĩ, thương binh giảm 10% học phí
-• Cơ sở: máy chiếu, điều hòa, phòng thí nghiệm, thư viện, nhà thể chất
-• Hoạt động: STEM, Mỹ thuật, tiếng Anh, thể thao, ngoại khóa phong phú
-
-Trả lời tiếng Việt — thân thiện, ngắn gọn, đúng trọng tâm. Dùng markdown khi cần thiết. Không biết → gợi ý liên hệ trường.`,
-        messages:history
-      })
+    const res = await fetch(BACKEND + '/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
     });
-    removeTyping(typId);
-    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error?.message||`HTTP ${res.status}`)}
-    const data=await res.json();
-    const answer=data.content?.map(b=>b.text||'').join('')||'(Không có phản hồi)';
 
-    const el=appendDOM('ai','',null,true);
-    const bbl=el.querySelector('.md-content');
-    let rendered='';
-    const words=answer.split(' ');
+    removeTyping(typId);
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.loi || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+
+    // Backend trả về: {"tra_loi": "...", "anh": [...base64...], "session_id": "..."}
+    const answer = (data.tra_loi && typeof data.tra_loi === 'object')
+      ? (data.tra_loi.tra_loi || JSON.stringify(data.tra_loi))
+      : (data.tra_loi || '(Không có phản hồi)');
+
+    const el  = appendDOM('ai','',null,true);
+    const bbl = el.querySelector('.md-content');
+    let rendered = '';
+    const words = answer.split(' ');
     await new Promise(resolve=>{
       let i=0;
       function step(){
@@ -867,6 +856,19 @@ Trả lời tiếng Việt — thân thiện, ngắn gọn, đúng trọng tâm.
       }
       step();
     });
+
+    // Hiển thị ảnh minh hoạ nếu backend trả về (toán, hình học...)
+    if(data.tra_loi?.anh?.length || data.anh?.length){
+      const imgs = data.tra_loi?.anh || data.anh;
+      imgs.forEach(b64=>{
+        const img=document.createElement('img');
+        img.src='data:image/png;base64,'+b64;
+        img.style.cssText='max-width:100%;border-radius:10px;margin-top:8px;display:block';
+        bbl.appendChild(img);
+      });
+      scrollBottom();
+    }
+
     const t=document.createElement('time');
     t.textContent=now();
     el.querySelector('.msg-bubble').appendChild(t);
@@ -874,7 +876,7 @@ Trả lời tiếng Việt — thân thiện, ngắn gọn, đúng trọng tâm.
 
   }catch(err){
     removeTyping(typId);
-    appendDOM('ai',`⚠️ Lỗi kết nối: ${err.message}\n\nVui lòng liên hệ nhà trường: **024.2239.3635**`,null,true);
+    appendDOM('ai',`⚠️ Lỗi kết nối AI: ${err.message}\n\nVui lòng liên hệ nhà trường: **024.2239.3635**`,null,true);
   }finally{
     isBusy=false;document.getElementById('btn-send').disabled=false;
   }
