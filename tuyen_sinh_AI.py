@@ -1241,8 +1241,17 @@ def chay_chat():
 
 
 def chay_server(port: int = 8000):
+    import mimetypes
     from http.server import HTTPServer, BaseHTTPRequestHandler
     sessions: dict[str, TuVanTuyenSinh] = {}
+
+    # Tìm file HTML trong cùng thư mục
+    _html_candidates = [
+        os.path.join(_BASE_DIR, "maihacde-ai.html"),
+        os.path.join(_BASE_DIR, "chat.html"),
+        os.path.join(_BASE_DIR, "index.html"),
+    ]
+    _HTML_FILE = next((f for f in _html_candidates if os.path.exists(f)), None)
 
     def lay_bot(sid: str) -> TuVanTuyenSinh:
         if sid not in sessions:
@@ -1251,7 +1260,24 @@ def chay_server(port: int = 8000):
 
     class Handler(BaseHTTPRequestHandler):
         def do_OPTIONS(self):
-            self._headers(200)
+            self._cors(200)
+
+        def do_GET(self):
+            path = self.path.split("?")[0]
+            if path in ("/", "/index.html", "/maihacde-ai.html", "/chat.html"):
+                if _HTML_FILE:
+                    self._serve_file(_HTML_FILE, "text/html; charset=utf-8")
+                else:
+                    self._cors(404)
+                    self.wfile.write(b"HTML file not found")
+                return
+            # Phục vụ file tĩnh khác (favicon, ảnh...)
+            local = os.path.join(_BASE_DIR, path.lstrip("/"))
+            if os.path.isfile(local):
+                mime, _ = mimetypes.guess_type(local)
+                self._serve_file(local, mime or "application/octet-stream")
+            else:
+                self._cors(404)
 
         def do_POST(self):
             body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
@@ -1262,27 +1288,63 @@ def chay_server(port: int = 8000):
                 if not cau_hoi:
                     self._json({"loi": "Thiếu câu hỏi"}, 400)
                     return
-                tra_loi = lay_bot(sid).hoi(cau_hoi)
-                self._json({"tra_loi": tra_loi, "session_id": sid})
+                bot = lay_bot(sid)
+                # Hỗ trợ ảnh đính kèm
+                if data.get("image_base64"):
+                    ket_qua = bot.hoi_voi_anh(
+                        cau_hoi,
+                        data["image_base64"],
+                        data.get("image_type", "image/jpeg"),
+                    )
+                else:
+                    ket_qua = bot.hoi(cau_hoi)
+                # ket_qua = {"tra_loi": str, "anh": [b64, ...]}
+                self._json({
+                    "tra_loi":    ket_qua.get("tra_loi", ""),
+                    "anh":        ket_qua.get("anh", []),
+                    "session_id": sid,
+                })
             except Exception as e:
+                log.exception("Lỗi xử lý câu hỏi")
                 self._json({"loi": str(e)}, 500)
 
-        def _headers(self, status):
+        # ── helpers ──────────────────────────────────────────────────────────
+        def _cors(self, status):
             self.send_response(status)
-            self.send_header("Content-Type",                  "application/json; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin",  "*")
-            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.end_headers()
 
         def _json(self, data, status=200):
-            self._headers(status)
-            self.wfile.write(json.dumps(data, ensure_ascii=False).encode())
+            payload = json.dumps(data, ensure_ascii=False).encode()
+            self.send_response(status)
+            self.send_header("Content-Type",                  "application/json; charset=utf-8")
+            self.send_header("Content-Length",                str(len(payload)))
+            self.send_header("Access-Control-Allow-Origin",  "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def _serve_file(self, filepath, content_type):
+            with open(filepath, "rb") as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type",   content_type)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(data)
 
         def log_message(self, *args):
             pass
 
     print(f"Server tại http://localhost:{port}")
+    if _HTML_FILE:
+        print(f"Đang phục vụ: {os.path.basename(_HTML_FILE)}")
+    else:
+        print("⚠ Không tìm thấy file HTML — chỉ có API endpoint POST /")
     HTTPServer(("", port), Handler).serve_forever()
 
 
