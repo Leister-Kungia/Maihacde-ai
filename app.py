@@ -1,8 +1,8 @@
 """
 app.py — Magerok AI v5
 Routes:
-  /                → chat (trang chủ)
-  
+  /                → maihacde-ai (trang chủ, redirect về maihacde-ai.html)
+  /maihacde-ai     → trang chủ trung tâm
   /login           → đăng nhập / đăng ký
   /chat            → chat có auth + lịch sử Supabase
   /reset-password  → đặt lại mật khẩu (từ link email)
@@ -10,7 +10,6 @@ Routes:
   /health          → health check
 
 API:
-  POST /demo/hoi         → chat không auth
   POST /hoi              → chat có auth, lưu lịch sử Supabase
   POST /reset            → reset session bot
   GET  /histories        → danh sách lịch sử (auth)
@@ -54,7 +53,6 @@ def lay_bot(session_id: str) -> TuVanTuyenSinh:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    lay_bot("demo")
     yield
 
 app = FastAPI(title="AI Tư Vấn Tuyển Sinh Lớp 10 — THPT Mai Hắc Đế", version="5.0.0", lifespan=lifespan)
@@ -120,16 +118,11 @@ def _page(name: str) -> FileResponse:
 
 # ── Page routes ───────────────────────────────────────────────────────────────
 @app.api_route("/",               methods=["GET", "HEAD"])
-def root():       return _page("chat.html")
-
-@app.api_route("/demo",           methods=["GET", "HEAD"])
-def demo():       return _page("demo.html")
+@app.api_route("/maihacde-ai",    methods=["GET", "HEAD"])
+def root():       return _page("maihacde-ai.html")
 
 @app.api_route("/login",          methods=["GET", "HEAD"])
 def login():      return _page("login.html")
-
-@app.api_route("/chat",           methods=["GET", "HEAD"])
-def chat():       return _page("chat.html")
 
 @app.api_route("/reset-password", methods=["GET", "HEAD"])
 def reset_pw():   return _page("reset-password.html")
@@ -139,18 +132,6 @@ def verify():     return _page("verify.html")
 
 @app.api_route("/health",         methods=["GET", "HEAD"])
 def health():     return {"status": "ok"}
-
-# ── Demo chat (không auth) ────────────────────────────────────────────────────
-@app.post("/demo/hoi")
-def demo_hoi(body: CauHoiRequest):
-    if not body.cau_hoi.strip() and not body.image_base64:
-        raise HTTPException(status_code=400, detail="Câu hỏi không được để trống.")
-    try:
-        bot     = lay_bot("demo")
-        ket_qua = _goi_bot(bot, body)
-        return {"tra_loi": ket_qua["tra_loi"], "anh": ket_qua.get("anh", [])}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 # ── Authenticated chat (SSE streaming progress) ───────────────────────────────
 @app.post("/hoi")
