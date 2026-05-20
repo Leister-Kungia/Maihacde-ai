@@ -1375,6 +1375,6 @@ if __name__ == "__main__":
     elif lenh == "chat":
         chay_chat()
     elif lenh == "server":
-        chay_server()
+        port = int(os.getenv("PORT", 8000))
     else:
         _huong_dan()
