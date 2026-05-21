@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>TRƯỜNG THPT MAI HẮC ĐẾ</title>
-<link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%236B0FAB' stroke='%23E8192C' stroke-width='2'/%3E%3Ctext x='50' y='50' font-size='50' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='%23E8192C'%3EM%3C/text%3E%3C/svg%3E"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%236B0FAB' stroke='%23E8192C' stroke-width='2'/%3E%3Ctext x='50' y='55' font-size='50' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='%23E8192C'%3EM%3C/text%3E%3C/svg%3E"/>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
@@ -77,13 +77,15 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 .conv-item:hover .del-btn{display:flex}
 .conv-item .del-btn:hover{color:#ff8a80}
 
-.sb-footer{padding:12px 14px;border-top:1px solid var(--sb-line);display:flex;align-items:center;gap:10px}
+.sb-footer{padding:12px 14px;border-top:1px solid var(--sb-line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .user-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),#A01020);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.72rem;font-weight:600;flex-shrink:0}
-.user-info{flex:1;overflow:hidden}
+.user-info{flex:1;overflow:hidden;min-width:100px}
 .user-name{color:#fff;font-size:0.82rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .user-sub{font-size:0.66rem;color:rgba(255,255,255,0.32);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.28);padding:5px;border-radius:6px;transition:color .14s}
-.btn-logout:hover{color:#ff8a80}
+
+.sb-footer-buttons{display:flex;gap:8px;width:100%;padding-top:8px;border-top:1px solid var(--sb-line)}
+.btn-logout,.btn-login-sb{flex:1;padding:7px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(255,255,255,0.85);font-size:0.75rem;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.btn-logout:hover,.btn-login-sb:hover{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.3)}
 
 #main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg)}
 
@@ -101,12 +103,16 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 
 .topbar-div{width:1px;height:28px;background:rgba(255,255,255,0.2)}
 
+.topbar-right{display:flex;align-items:center;gap:14px}
 .topbar-ai{display:flex;align-items:center;gap:7px;font-size:0.78rem;color:rgba(255,255,255,0.85);font-weight:500}
 .ai-label{background:var(--red);color:#fff;border-radius:4px;padding:2px 8px;font-size:0.7rem;font-weight:600;letter-spacing:.3px}
 
 .status-online{display:flex;align-items:center;gap:5px;font-size:0.72rem;color:rgba(255,255,255,0.7)}
 .status-dot{width:6px;height:6px;border-radius:50%;background:#27AE60;box-shadow:0 0 0 2px rgba(39,174,96,0.2);animation:pulse-green 2s ease-in-out infinite}
 @keyframes pulse-green{0%,100%{box-shadow:0 0 0 2px rgba(39,174,96,0.2)}50%{box-shadow:0 0 0 4px rgba(39,174,96,0.08)}}
+
+.btn-topbar-login{padding:6px 14px;background:var(--red);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-topbar-login:hover{background:var(--red-hover);transform:translateY(-1px)}
 
 #messages{flex:1;overflow-y:auto;padding:28px 0;display:flex;flex-direction:column;scroll-behavior:smooth}
 #messages::-webkit-scrollbar{width:5px}
@@ -124,6 +130,9 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 .empty-state h2{font-family:'Merriweather',serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.3}
 .empty-state h2 span{color:var(--red)}
 .empty-state p{font-size:0.87rem;color:rgba(255,255,255,0.7);max-width:400px;line-height:1.75;margin-bottom:30px;font-weight:300}
+
+.login-hint{display:inline-block;background:rgba(255,200,200,0.15);border:1px solid rgba(232,25,44,0.3);border-radius:8px;padding:10px 16px;margin-bottom:20px;font-size:0.82rem;color:rgba(255,255,255,0.9);text-align:center}
+.login-hint-icon{font-size:1.1rem;margin-right:6px}
 
 .chips{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;max-width:580px}
 .chip{padding:9px 17px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);font-size:0.79rem;color:rgba(255,255,255,0.85);cursor:pointer;transition:all .2s;font-family:'Be Vietnam Pro',sans-serif;font-weight:400;box-shadow:none;backdrop-filter:blur(4px)}
@@ -212,6 +221,8 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
   .msg-bubble{max-width:92%}
   .input-outer{padding:0 14px 14px}
   .topbar{padding:0 16px}
+  .topbar-right{flex-direction:column;gap:8px}
+  .btn-topbar-login{width:100%}
 }
 </style>
 </head>
@@ -232,7 +243,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 <aside id="sidebar">
   <div class="sb-brand">
     <div class="brand-logo-wrap">
-      <svg width="66" height="66" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#6B0FAB" stroke="#E8192C" stroke-width="2"/><text x="50" y="50" font-size="50" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="#E8192C">M</text></svg>
+      <svg width="66" height="66" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#6B0FAB" stroke="#E8192C" stroke-width="2"/><text x="50" y="55" font-size="50" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="#E8192C">M</text></svg>
     </div>
     <div class="brand-school">TRƯỜNG THPT</div>
     <div class="brand-name">MAI HẮC ĐẾ</div>
@@ -253,12 +264,13 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
   <div class="sb-footer">
     <div class="user-av" id="user-avatar">HS</div>
     <div class="user-info">
-      <div class="user-name" id="user-name">Học sinh</div>
-      <div class="user-sub">maihacde.edu.vn</div>
+      <div class="user-name" id="user-name">Khách</div>
+      <div class="user-sub" id="user-sub">Không lưu lịch sử</div>
     </div>
-    <button class="btn-logout" onclick="logout()" title="Đăng xuất">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    </button>
+    <div class="sb-footer-buttons">
+      <a href="/login" class="btn-login-sb" title="Đăng nhập">🔐 Đăng nhập</a>
+      <button class="btn-logout" onclick="clearAll()" title="Xóa hết">🗑️ Xóa</button>
+    </div>
   </div>
 </aside>
 
@@ -275,7 +287,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
         <div class="topbar-addr">Lô 2-10A, 431 Tam Trinh, Hoàng Mai, Hà Nội</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:14px">
+    <div class="topbar-right">
       <div class="topbar-ai">
         <span class="ai-label">AI</span>
         Tư vấn tuyển sinh
@@ -284,6 +296,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
         <div class="status-dot"></div>
         Đang hoạt động
       </div>
+      <a href="/login" class="btn-topbar-login">Đăng nhập</a>
     </div>
   </div>
 
@@ -340,9 +353,9 @@ function switchConv(id){activeId=id;renderSidebar();const conv=getConv();const b
 
 function delConv(e,id){e.stopPropagation();conversations=conversations.filter(c=>c.id!==id);if(activeId===id){if(conversations.length===0)newChat();else{activeId=conversations[0].id;switchConv(activeId)}}renderSidebar()}
 
-function logout(){if(confirm('Bạn muốn đăng xuất?'))alert('Cần kết nối backend.')}
+function clearAll(){if(confirm('Xóa tất cả cuộc trò chuyện?')){conversations=[];newChat()}}
 
-function renderEmpty(){document.getElementById('messages').innerHTML=`<div class="empty-state" id="empty-state"><div class="welcome-icon"><svg width="52" height="52" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#6B0FAB" stroke="#E8192C" stroke-width="2"/><text x="50" y="55" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="#E8192C">M</text></svg></div><div class="welcome-badge"><div class="badge-dot"></div>Trường THPT Mai Hắc Đế<div class="badge-dot"></div></div><h2>Xin chào! Mình là <span>Trợ lý AI</span><br/>của trường Mai Hắc Đế</h2><p>Hỏi mình bất kỳ điều gì về tuyển sinh lớp 10, học phí, chương trình học và đời sống học đường tại trường nhé.</p><div class="chips"><button class="chip" onclick="quickSend(this)">Tuyển sinh lớp 10 năm 2025–2026?</button><button class="chip" onclick="quickSend(this)">Học phí trường là bao nhiêu?</button><button class="chip" onclick="quickSend(this)">Cách nộp hồ sơ xét tuyển?</button><button class="chip" onclick="quickSend(this)">Trường có chính sách học bổng không?</button><button class="chip" onclick="quickSend(this)">Tỷ lệ đỗ đại học của trường?</button><button class="chip" onclick="quickSend(this)">Cơ sở vật chất và hoạt động ngoại khóa?</button></div></div>`}
+function renderEmpty(){document.getElementById('messages').innerHTML=`<div class="empty-state" id="empty-state"><div class="welcome-icon"><svg width="52" height="52" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#6B0FAB" stroke="#E8192C" stroke-width="2"/><text x="50" y="55" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="#E8192C">M</text></svg></div><div class="welcome-badge"><div class="badge-dot"></div>Trường THPT Mai Hắc Đế<div class="badge-dot"></div></div><div class="login-hint"><span class="login-hint-icon">💾</span>Đăng nhập để lưu lịch sử cuộc trò chuyện</div><h2>Xin chào! Mình là <span>Trợ lý AI</span><br/>của trường Mai Hắc Đế</h2><p>Hỏi mình bất kỳ điều gì về tuyển sinh lớp 10, học phí, chương trình học và đời sống học đường tại trường nhé.</p><div class="chips"><button class="chip" onclick="quickSend(this)">Tuyển sinh lớp 10 năm 2025–2026?</button><button class="chip" onclick="quickSend(this)">Học phí trường là bao nhiêu?</button><button class="chip" onclick="quickSend(this)">Cách nộp hồ sơ xét tuyển?</button><button class="chip" onclick="quickSend(this)">Trường có chính sách học bổng không?</button><button class="chip" onclick="quickSend(this)">Tỷ lệ đỗ đại học của trường?</button><button class="chip" onclick="quickSend(this)">Cơ sở vật chất và hoạt động ngoại khóa?</button></div></div>`}
 
 function quickSend(btn){document.getElementById('chat-input').value=btn.textContent;sendMessage()}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}}
