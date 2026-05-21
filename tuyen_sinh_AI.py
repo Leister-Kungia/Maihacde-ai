@@ -1266,7 +1266,21 @@ def chay_server(port: int = 8000):
             path = self.path.split("?")[0]
             if path in ("/", "/index.html", "/maihacde-ai.html", "/chat.html"):
                 if _HTML_FILE:
-                    self._serve_file(_HTML_FILE, "text/html; charset=utf-8")
+                    # Inject BACKEND URL từ environment vào HTML trước khi gửi
+                    with open(_HTML_FILE, "r", encoding="utf-8") as f:
+                        html = f.read()
+                    backend_url = os.getenv("RENDER_EXTERNAL_URL", "")
+                    html = html.replace(
+                        "const BACKEND = window._BACKEND_URL || '';",
+                        f"const BACKEND = '{backend_url}';"
+                    )
+                    payload = html.encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(payload)
                 else:
                     self._cors(404)
                     self.wfile.write(b"HTML file not found")
@@ -1375,6 +1389,6 @@ if __name__ == "__main__":
     elif lenh == "chat":
         chay_chat()
     elif lenh == "server":
-        port = int(os.getenv("PORT", 8000))
+        chay_server()
     else:
         _huong_dan()
