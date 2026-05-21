@@ -375,6 +375,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
   border-top-right-radius:3px;
   color:#fff;
   box-shadow:0 3px 12px rgba(107,15,171,0.25);
+  border:2px solid rgba(255,255,255,0.25);
 }
 .msg-bubble time{display:block;font-size:0.63rem;margin-top:8px;opacity:.4;text-align:right}
 
@@ -809,53 +810,117 @@ async function sendMessage(){
   const typId='typ_'+Date.now();
   appendTyping(typId);
 
+  // ── Gọi thẳng Groq API từ JavaScript ────────────────────────────────────
+  // Thay YOUR_GROQ_API_KEY bằng API key thực của bạn từ console.groq.com
+  const GROQ_API_KEY = window._GROQ_API_KEY || 'YOUR_GROQ_API_KEY';
+
+  const THONG_TIN_TRUONG = `
+=== THÔNG TIN TRƯỜNG THPT MAI HẮC ĐẾ ===
+Tên đầy đủ  : Trường Trung học Phổ thông Mai Hắc Đế
+Loại hình   : Trường ngoài công lập (dân lập) tại Hà Nội
+Địa chỉ     : Lô 2-10A, số 431 Tam Trinh, phường Hoàng Văn Thụ, quận Hoàng Mai, Hà Nội
+Điện thoại  : 024.2239.3635 | 0972.951.456 | 0947.876.098 | 094.7653999
+Email       : c3maihacde@hanoiedu.vn
+Website     : https://maihacde.edu.vn
+
+--- HỌC PHÍ & CHI PHÍ ---
+Học phí       : 2.500.000 đồng/tháng (học 2 buổi/ngày, thứ Hai → thứ Bảy)
+Phí XD trường : 1.500.000 đồng/năm
+Lệ phí nộp hồ sơ: KHÔNG THU (cam kết không thu phí giữ chỗ)
+Chính sách    : Học phí KHÔNG thay đổi trong cả 3 năm (lớp 10, 11, 12)
+Học bổng      : Có chính sách học bổng cho HS xuất sắc/hoàn cảnh khó khăn
+
+--- TUYỂN SINH LỚP 10 ---
+Đối tượng  : Học sinh đã tốt nghiệp THCS trên toàn quốc
+Chỉ tiêu   : ~320-360 học sinh/năm (mỗi lớp ≤30 HS)
+Phương thức: Xét tuyển kết hợp 2 tiêu chí:
+  1. Điểm thi vào lớp 10 công lập (kỳ thi Sở GD&ĐT Hà Nội)
+  2. Kết quả học tập 4 năm THCS (học bạ)
+  → Học sinh không thi lớp 10 công lập vẫn được xét học bạ
+
+Hồ sơ cần: Phiếu đăng ký, Giấy khai sinh, Giấy chứng nhận tốt nghiệp THCS,
+Phiếu điểm thi (nếu có), Học bạ THCS bản chính, CCCD/CMND, giấy tờ ưu tiên (nếu có)
+
+--- CƠ SỞ VẬT CHẤT ---
+- Khuôn viên hiện đại tại KĐT Vĩnh Hoàng, Hoàng Mai
+- Phòng học: máy chiếu, điều hoà, sĩ số ≤30 HS/lớp
+- Phòng thí nghiệm, thư viện, nhà thể chất theo quy chuẩn
+
+--- CHẤT LƯỢNG ---
+- Tỷ lệ đỗ tốt nghiệp THPT: 100% hàng năm
+- Tỷ lệ đỗ ĐH/CĐ: >95% học sinh
+- Đội ngũ ~100 cán bộ giáo viên, có giảng viên ĐH Sư Phạm HN`;
+
+  const SYSTEM_PROMPT = `Bạn là trợ lý tư vấn tuyển sinh AI của trường THPT Mai Hắc Đế (Hà Nội).
+Xưng "mình", gọi người hỏi là "bạn". Thân thiện, gần gũi, dùng emoji phù hợp.
+
+Bạn có thể tư vấn về:
+- Điểm xét tuyển, cơ hội đỗ vào lớp 10 MHĐ
+- Thông tin trường: học phí, cơ sở vật chất, đội ngũ giáo viên
+- Quy trình tuyển sinh: hồ sơ, thời hạn, phương thức xét tuyển
+- Chương trình học THPT tại MHĐ
+- Định hướng nghề nghiệp sau THPT
+- Giải đáp kiến thức THCS/THPT (toán, lý, hóa, văn, anh...)
+
+${THONG_TIN_TRUONG}
+
+Nguyên tắc:
+- Trả lời đúng trọng tâm câu hỏi, ngắn gọn, thực tế
+- Không bịa thông tin; nếu không chắc → hướng dẫn liên hệ trực tiếp trường
+- Nhắc rõ: MHĐ là trường dân lập, KHÔNG thu phí giữ chỗ
+- Nếu hỏi điểm chuẩn mà chưa biết điểm HS → hỏi lại điểm thi của bạn
+- Cuối câu trả lời về tuyển sinh: nhắc số điện thoại 024.2239.3635
+- Trả lời bằng tiếng Việt`;
+
   try{
-    const userContent=[];
-    if(imgForRequest){
-      const base64=imgForRequest.split(',')[1];
-      const mime=imgForRequest.split(';')[0].split(':')[1];
-      userContent.push({type:'image',source:{type:'base64',media_type:mime,data:base64}});
-    }
-    if(text)userContent.push({type:'text',text});
-
-    const history=conv.messages.slice(0,-1).map(m=>({
-      role:m.role==='ai'?'assistant':'user',content:m.content
+    // Xây dựng messages kèm lịch sử hội thoại
+    const historyMessages = conv.messages.slice(-10, -1).map(m => ({
+      role: m.role === 'ai' ? 'assistant' : 'user',
+      content: m.content
     }));
-    history.push({role:'user',content:userContent});
 
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system:`Bạn là trợ lý tư vấn tuyển sinh của Trường THPT Mai Hắc Đế (quận Hoàng Mai, Hà Nội).
-Địa chỉ: Lô 2-10A, số 431 Tam Trinh, Hoàng Mai, Hà Nội.
-SĐT: 024.2239.3635 – 0972.951.456 – 0947.876.098 – 094.7653999
-Website: maihacde.edu.vn | Email: c3maihacde@hanoiedu.vn
+    // Chuẩn bị nội dung tin nhắn user (có thể kèm ảnh)
+    let userContent;
+    if(imgForRequest){
+      userContent = [
+        { type: 'text', text: text || 'Hãy xem ảnh này và tư vấn cho mình.' },
+        { type: 'image_url', image_url: { url: imgForRequest } }
+      ];
+    } else {
+      userContent = text;
+    }
 
-Thông tin chính:
-• Trường dân lập, thành lập 2009, sĩ số ≤ 30 học sinh/lớp, ứng dụng CNTT trong giảng dạy
-• Học phí: 2.500.000đ/tháng (2 buổi/ngày, T2–T7) + 1.500.000đ/năm (hỗ trợ xây dựng); học phí ổn định 3 năm
-• Tuyển sinh lớp 10: xét học bạ THCS hoặc theo điểm thi công lập; chỉ tiêu ~320 học sinh
-• Đối tượng: học sinh tốt nghiệp THCS toàn quốc, sinh 2009–2010
-• Kết quả: 100% đỗ tốt nghiệp, >95% đỗ đại học/cao đẳng, giải học sinh giỏi cấp TP
-• Học bổng: con liệt sĩ, thương binh giảm 10% học phí
-• Cơ sở: máy chiếu, điều hòa, phòng thí nghiệm, thư viện, nhà thể chất
-• Hoạt động: STEM, Mỹ thuật, tiếng Anh, thể thao, ngoại khóa phong phú
-
-Trả lời tiếng Việt — thân thiện, ngắn gọn, đúng trọng tâm. Dùng markdown khi cần thiết. Không biết → gợi ý liên hệ trường.`,
-        messages:history
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...historyMessages,
+          { role: 'user', content: userContent }
+        ],
+        max_tokens: 1200,
+        temperature: 0.7,
+        stream: false
       })
     });
-    removeTyping(typId);
-    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error?.message||`HTTP ${res.status}`)}
-    const data=await res.json();
-    const answer=data.content?.map(b=>b.text||'').join('')||'(Không có phản hồi)';
 
-    const el=appendDOM('ai','',null,true);
-    const bbl=el.querySelector('.md-content');
-    let rendered='';
-    const words=answer.split(' ');
+    removeTyping(typId);
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const answer = data.choices?.[0]?.message?.content || '(Không có phản hồi)';
+
+    const el  = appendDOM('ai','',null,true);
+    const bbl = el.querySelector('.md-content');
+    let rendered = '';
+    const words = answer.split(' ');
     await new Promise(resolve=>{
       let i=0;
       function step(){
@@ -867,6 +932,7 @@ Trả lời tiếng Việt — thân thiện, ngắn gọn, đúng trọng tâm.
       }
       step();
     });
+
     const t=document.createElement('time');
     t.textContent=now();
     el.querySelector('.msg-bubble').appendChild(t);
@@ -874,7 +940,7 @@ Trả lời tiếng Việt — thân thiện, ngắn gọn, đúng trọng tâm.
 
   }catch(err){
     removeTyping(typId);
-    appendDOM('ai',`⚠️ Lỗi kết nối: ${err.message}\n\nVui lòng liên hệ nhà trường: **024.2239.3635**`,null,true);
+    appendDOM('ai',`⚠️ Lỗi kết nối AI: ${err.message}\n\nVui lòng liên hệ nhà trường: **024.2239.3635**`,null,true);
   }finally{
     isBusy=false;document.getElementById('btn-send').disabled=false;
   }
@@ -889,9 +955,9 @@ function appendDOM(role,content,imgDataUrl,animate){
   const avatarHtml=role==='user'
     ?`<div class="msg-avatar user">${initials}</div>`
     :`<div class="msg-avatar ai">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2C12 2 7 7.5 7 13c0 2.76 2.24 5 5 5s5-2.24 5-5c0-2.2-1-3.8-2-4.8 0 2.1-1.8 3.3-1.8 3.3C13.3 9.8 12 6.8 12 2Z" fill="rgba(255,255,255,0.9)"/>
-        </svg>
+        <img src="https://maihacde.edu.vn/wp-content/uploads/2022/10/logo-mhd.png"
+             style="width:26px;height:26px;object-fit:contain;border-radius:50%;"
+             onerror="this.style.display='none';this.parentNode.innerHTML='AI'"/>
       </div>`;
   let inner='';
   if(imgDataUrl)inner+=`<img src="${imgDataUrl}" style="max-width:240px;border-radius:10px;display:block;margin-bottom:8px;border:1px solid var(--line)" alt="ảnh"/>`;
@@ -911,9 +977,9 @@ function appendTyping(id){
   row.id=id;row.className='msg-row';
   row.innerHTML=`
     <div class="msg-avatar ai">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2C12 2 7 7.5 7 13c0 2.76 2.24 5 5 5s5-2.24 5-5c0-2.2-1-3.8-2-4.8 0 2.1-1.8 3.3-1.8 3.3C13.3 9.8 12 6.8 12 2Z" fill="rgba(255,255,255,0.9)"/>
-      </svg>
+      <img src="https://maihacde.edu.vn/wp-content/uploads/2022/10/logo-mhd.png"
+           style="width:26px;height:26px;object-fit:contain;border-radius:50%;"
+           onerror="this.style.display='none';this.parentNode.innerHTML='AI'"/>
     </div>
     <div class="msg-bubble ai">
       <div class="typing-dots"><span></span><span></span><span></span></div>
