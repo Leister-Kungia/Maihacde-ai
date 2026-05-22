@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
   :root {
     --navy:       #6B0FAB;
     --navy-dark:  #3D0866;
@@ -27,9 +27,9 @@
     --radius-md:  14px;
     --radius-lg:  20px;
   }
-
+ 
   html, body { height: 100%; }
-
+ 
   body {
     font-family: 'Be Vietnam Pro', sans-serif;
     background: linear-gradient(145deg, #2A0550 0%, #3D0866 35%, #6B0FAB 70%, #520C85 100%);
@@ -41,7 +41,7 @@
     position: relative;
     overflow: hidden;
   }
-
+ 
   /* Decorative background elements */
   body::before {
     content: '';
@@ -57,7 +57,7 @@
     background: radial-gradient(circle, rgba(107,15,171,0.35), transparent 65%);
     pointer-events: none;
   }
-
+ 
   /* Accent line at top */
   .page-accent {
     position: fixed; top: 0; left: 0; right: 0;
@@ -65,7 +65,7 @@
     background: linear-gradient(90deg, var(--red), rgba(232,25,44,0.4), var(--red));
     z-index: 100;
   }
-
+ 
   /* Subtle grid pattern */
   .bg-grid {
     position: fixed; inset: 0;
@@ -75,7 +75,7 @@
     background-size: 48px 48px;
     pointer-events: none;
   }
-
+ 
   .card {
     width: 100%; max-width: 420px;
     background: rgba(255,255,255,0.07);
@@ -95,7 +95,7 @@
     from { opacity: 0; transform: translateY(28px) scale(0.96); }
     to   { opacity: 1; transform: none; }
   }
-
+ 
   /* Red bottom accent on card */
   .card::after {
     content: '';
@@ -105,7 +105,7 @@
     border-radius: 1px;
     opacity: 0.6;
   }
-
+ 
   /* Logo / brand */
   .brand {
     display: flex; align-items: center; gap: 12px;
@@ -128,7 +128,7 @@
     font-family: 'Merriweather', serif;
     font-size: 0.92rem; font-weight: 700; color: #fff; line-height: 1.2;
   }
-
+ 
   /* AI badge */
   .ai-badge {
     display: inline-flex; align-items: center; gap: 6px;
@@ -145,7 +145,7 @@
     animation: blink 2s ease-in-out infinite;
   }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-
+ 
   .heading { margin-bottom: 26px; }
   .heading h1 {
     font-family: 'Merriweather', serif;
@@ -155,7 +155,7 @@
   }
   .heading h1 span { color: var(--red); }
   .heading p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
-
+ 
   /* Tabs */
   .tabs {
     display: flex; gap: 3px;
@@ -175,7 +175,7 @@
     color: #fff;
     box-shadow: 0 2px 12px rgba(232,25,44,0.35);
   }
-
+ 
   /* Form */
   .form-group { margin-bottom: 14px; }
   label {
@@ -201,7 +201,7 @@
     background: rgba(255,255,255,0.11);
     box-shadow: 0 0 0 3px rgba(232,25,44,0.15);
   }
-
+ 
   .password-wrap { position: relative; }
   .toggle-pw {
     position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
@@ -210,14 +210,14 @@
     transition: color 0.2s;
   }
   .toggle-pw:hover { color: rgba(255,255,255,0.7); }
-
+ 
   .forgot {
     display: block; text-align: right; font-size: 0.76rem;
     color: rgba(232,25,44,0.8); margin-top: 6px; cursor: pointer;
     text-decoration: none; transition: color 0.2s;
   }
   .forgot:hover { color: var(--red); }
-
+ 
   /* Submit button */
   .btn-submit {
     width: 100%; padding: 13px;
@@ -249,7 +249,7 @@
   .btn-submit.loading .btn-text { display: none; }
   .btn-submit.loading .spinner { display: block; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
   /* Divider */
   .divider {
     display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
@@ -258,7 +258,7 @@
     content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
   }
   .divider span { font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
-
+ 
   /* Google button */
   .btn-social {
     width: 100%; padding: 11px 16px;
@@ -276,7 +276,7 @@
     transform: translateY(-1px);
   }
   .btn-social img { width: 18px; height: 18px; }
-
+ 
   /* Alert */
   .alert {
     padding: 10px 13px; border-radius: 8px;
@@ -287,7 +287,7 @@
   .alert.error { background: rgba(232,25,44,0.12); color: #ff8a80; border: 1px solid rgba(232,25,44,0.25); }
   .alert.success { background: rgba(39,174,96,0.1); color: #6ee09a; border: 1px solid rgba(39,174,96,0.25); }
   .alert.show { display: block; }
-
+ 
   /* Footer note */
   .footer-note {
     text-align: center; font-size: 0.78rem;
@@ -295,7 +295,7 @@
   }
   .footer-note a { color: rgba(232,25,44,0.8); cursor: pointer; text-decoration: none; }
   .footer-note a:hover { color: var(--red); }
-
+ 
   /* Success screen */
   #success-screen { display: none; text-align: center; }
   .check-circle {
@@ -314,7 +314,7 @@
 <body>
 <div class="page-accent"></div>
 <div class="bg-grid"></div>
-
+ 
 <div class="card">
   <!-- Brand -->
   <a class="brand" href="https://maihacde-ai.onrender.com">
@@ -326,36 +326,36 @@
       <span class="brand-name">Mai Hắc Đế</span>
     </div>
   </a>
-
+ 
   <div class="ai-badge">
     <span class="live-dot"></span>
     AI Tư vấn học đường
   </div>
-
+ 
   <!-- Auth screen -->
   <div id="auth-screen">
     <div class="heading">
       <h1 id="heading-title">Chào mừng <span>trở lại</span></h1>
       <p id="heading-sub">Đăng nhập để tiếp tục tư vấn cùng AI</p>
     </div>
-
+ 
     <div class="tabs">
       <button class="tab active" id="tab-login" onclick="switchTab('login')">Đăng nhập</button>
       <button class="tab" id="tab-register" onclick="switchTab('register')">Đăng ký</button>
     </div>
-
+ 
     <div class="alert" id="alert-box"></div>
-
+ 
     <div class="form-group" id="name-group" style="display:none">
       <label for="full-name">Họ và tên</label>
       <input type="text" id="full-name" placeholder="Nguyễn Văn A" autocomplete="name"/>
     </div>
-
+ 
     <div class="form-group">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="email@example.com" autocomplete="email"/>
     </div>
-
+ 
     <div class="form-group">
       <label for="password">Mật khẩu</label>
       <div class="password-wrap">
@@ -366,24 +366,24 @@
       </div>
       <a class="forgot" id="forgot-link" onclick="forgotPassword()">Quên mật khẩu?</a>
     </div>
-
+ 
     <button class="btn-submit" id="submit-btn" onclick="handleSubmit()">
       <span class="btn-text" id="submit-text">Đăng nhập</span>
       <div class="spinner"></div>
     </button>
-
+ 
     <div class="divider"><span>hoặc tiếp tục với</span></div>
-
+ 
     <button class="btn-social" onclick="loginGoogle()">
       <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google"/>
       Tiếp tục với Google
     </button>
-
+ 
     <p class="footer-note" id="footer-note">
       Chưa có tài khoản? <a onclick="switchTab('register')">Đăng ký miễn phí</a>
     </p>
   </div>
-
+ 
   <!-- Success screen -->
   <div id="success-screen">
     <div class="check-circle">
@@ -397,20 +397,20 @@
     </button>
   </div>
 </div>
-
+ 
 <script>
   const SUPABASE_URL  = 'https://gwduxjcxrnlytodandco.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3ZHV4amN4cm5seXRvZGFuZGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MTYwODAsImV4cCI6MjA5NDM5MjA4MH0.hAzwFJa68wFKtfyB9TKHXg-jWXt_4pCHn7gzvYyss7c';
-
+ 
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
+ 
   sb.auth.getSession().then(({ data }) => {
     if (data.session) window.location.href = 'https://maihacde-ai.onrender.com';
   });
-
+ 
   let currentTab = 'login';
-
+ 
   function switchTab(tab) {
     currentTab = tab;
     document.getElementById('tab-login').classList.toggle('active', tab === 'login');
@@ -430,24 +430,24 @@
     document.getElementById('success-screen').style.display = 'none';
     hideAlert();
   }
-
+ 
   function showAlert(msg, type = 'error') {
     const el = document.getElementById('alert-box');
     el.textContent = msg; el.className = `alert ${type} show`;
   }
   function hideAlert() { document.getElementById('alert-box').classList.remove('show'); }
-
+ 
   function setLoading(loading) {
     const btn = document.getElementById('submit-btn');
     btn.classList.toggle('loading', loading);
     btn.disabled = loading;
   }
-
+ 
   function togglePw() {
     const input = document.getElementById('password');
     input.type = input.type === 'password' ? 'text' : 'password';
   }
-
+ 
   async function handleSubmit() {
     hideAlert();
     const email    = document.getElementById('email').value.trim();
@@ -488,14 +488,14 @@
       setLoading(false);
     }
   }
-
+ 
   async function loginGoogle() {
     await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: 'https://maihacde-ai.onrender.com' }
     });
   }
-
+ 
   async function forgotPassword() {
     const email = document.getElementById('email').value.trim();
     if (!email) { showAlert('Nhập email của bạn rồi nhấn "Quên mật khẩu".'); return; }
@@ -505,7 +505,7 @@
     if (error) showAlert(error.message);
     else showAlert('Nếu email này đã đăng ký, bạn sẽ nhận được link đặt lại mật khẩu.', 'success');
   }
-
+ 
   document.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
 </script>
 </body>
