@@ -295,19 +295,18 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
     if (access_token && refresh_token) {
-      _sb.auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
-        console.log('[AUTH setSession]', data?.session?.user?.email, error);
-        history.replaceState(null, '', window.location.pathname);
-        updateAuthUI();
+      _sb.auth.setSession({ access_token, refresh_token }).then(() => {
+        // Reload clean URL so page reinitializes with session
+        window.location.replace(window.location.pathname);
       });
     }
+  } else {
+    // Normal page load - listen for auth state changes
+    _sb.auth.onAuthStateChange((event, session) => {
+      console.log('[AUTH state]', event, session?.user?.email);
+      updateAuthUI();
+    });
   }
-
-  // Listen for auth state changes
-  _sb.auth.onAuthStateChange((event, session) => {
-    console.log('[AUTH state]', event, session?.user?.email);
-    updateAuthUI();
-  });
 </script>
 </head>
 <body>
