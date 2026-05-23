@@ -300,12 +300,6 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
         window.location.replace(window.location.pathname);
       });
     }
-  } else {
-    // Normal page load - listen for auth state changes
-    _sb.auth.onAuthStateChange((event, session) => {
-      console.log('[AUTH state]', event, session?.user?.email);
-      updateAuthUI();
-    });
   }
 </script>
 </head>
@@ -415,7 +409,17 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 <script>
 let conversations=[],activeId=null,isBusy=false,pendingImageData=null;
 
-document.addEventListener('DOMContentLoaded',()=>{newChat();setupDragDrop();updateAuthUI();});
+document.addEventListener('DOMContentLoaded',()=>{
+  newChat();
+  setupDragDrop();
+  // Run auth UI update after DOM is ready
+  updateAuthUI();
+  // Listen for auth state changes (sign in, sign out, token refresh)
+  _sb.auth.onAuthStateChange((event, session) => {
+    console.log('[AUTH]', event, session?.user?.email);
+    updateAuthUI();
+  });
+});
 function getConv(){return conversations.find(c=>c.id===activeId)}
 
 function newChat(){const id='conv_'+Date.now();conversations.unshift({id,title:'Cuộc trò chuyện mới',messages:[]});activeId=id;renderEmpty();renderSidebar()}
@@ -562,7 +566,7 @@ function appendDOM(role,content,imgDataUrl,animate){
     inner+=`<div class="md-content">${content?marked.parse(content):''}</div>`;
     if(content)inner+=`<time>${now()}</time>`;
   }else{
-    inner+=`<div>${esc(content)}</div><time>${now()}</time>`;
+    inner+=`<div>${esc(content)}</div>${content?`<time>${now()}</time>`:''}` ;
   }
   row.innerHTML=avatarHtml+`<div class="msg-bubble ${role==='user'?'user':'ai'}">${inner}</div>`;
   box.appendChild(row);scrollBottom();return row;
