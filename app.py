@@ -135,7 +135,7 @@ def health():     return {"status": "ok"}
 
 # ── Authenticated chat (SSE streaming progress) ───────────────────────────────
 @app.post("/hoi")
-def hoi(body: CauHoiRequest, user_id: str = Depends(get_user_id)):
+def hoi(body: CauHoiRequest, user_id: Optional[str] = Depends(get_user_optional)):
     # Validation: cần ít nhất text hoặc file
     all_files_check = list(body.files) or ([body.image_base64] if body.image_base64 else [])
     if not body.cau_hoi.strip() and not all_files_check:
