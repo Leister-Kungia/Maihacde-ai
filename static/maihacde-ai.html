@@ -488,6 +488,7 @@ async function sendMessage(){
           const nextLine=lines[++i];
           if(nextLine&&nextLine.startsWith('data: ')){
             const data=JSON.parse(nextLine.slice(6));
+            console.log('[RAW SSE]', event, data);
             handleStreamEvent(event,data,typId);
           }
         }
@@ -503,6 +504,7 @@ async function sendMessage(){
 }
 
 function handleStreamEvent(event,data,typId){
+  console.log('[SSE]', event, data, typId);
   if(event==='progress'){
     updateProgress(typId, data.step||0, data.text||'');
   }else if(event==='done'){
@@ -565,6 +567,7 @@ function appendTyping(id){
 }
 
 function updateProgress(id,step,text,done=false){
+  console.log('[updateProgress]', id, step, text, done);
   const wrap=document.getElementById(id+'-steps');
   if(!wrap)return;
   wrap.querySelectorAll('.progress-step.active').forEach(el=>{
