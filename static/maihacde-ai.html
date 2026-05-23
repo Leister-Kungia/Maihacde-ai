@@ -289,13 +289,25 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
     updateAuthUI();
   }
 
-  // Handle OAuth callback token in URL hash
+  // Handle OAuth callback token in URL hash (after Google login)
   if (window.location.hash && window.location.hash.includes('access_token')) {
-    _sb.auth.getSession();
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (access_token && refresh_token) {
+      _sb.auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
+        console.log('[AUTH setSession]', data?.session?.user?.email, error);
+        history.replaceState(null, '', window.location.pathname);
+        updateAuthUI();
+      });
+    }
   }
 
-  // Run on page load
-  _sb.auth.onAuthStateChange(() => updateAuthUI());
+  // Listen for auth state changes
+  _sb.auth.onAuthStateChange((event, session) => {
+    console.log('[AUTH state]', event, session?.user?.email);
+    updateAuthUI();
+  });
 </script>
 </head>
 <body>
