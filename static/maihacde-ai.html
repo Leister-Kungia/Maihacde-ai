@@ -443,7 +443,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
 </main>
 
 <script>
-let conversations=[],activeId=null,isBusy=false,pendingImageData=null;
+let conversations=[],activeId=null,isBusy=false,pendingImageData=null,deletedIds=new Set();
 
 document.addEventListener('DOMContentLoaded',()=>{
   newChat();
@@ -476,6 +476,7 @@ function renderHistorySidebar(histories) {
   // Merge server histories into local conversations list
   if (!histories || !histories.length) return;
   histories.forEach(h => {
+    if (deletedIds.has(h.id)) return; // bỏ qua đã xóa
     const exists = conversations.find(c => c.id === h.id);
     if (!exists) {
       conversations.unshift({ id: h.id, title: h.title || 'Cuộc trò chuyện', messages: null, _fromServer: true });
@@ -506,7 +507,20 @@ async function switchConvWithLoad(id) {
 
 function switchConv(id){activeId=id;renderSidebar();const conv=getConv();const box=document.getElementById('messages');if(!conv||conv.messages.length===0){renderEmpty();return;}box.innerHTML='';conv.messages.forEach(m=>appendDOM(m.role,m.content,null,false))}
 
-function delConv(e,id){e.stopPropagation();conversations=conversations.filter(c=>c.id!==id);if(activeId===id){if(conversations.length===0)newChat();else{activeId=conversations[0].id;switchConv(activeId)}}renderSidebar()}
+function delConv(e,id){
+  e.stopPropagation();
+  // Xóa trên server nếu là UUID thật
+  if(id && !id.startsWith('conv_')) {
+    deletedIds.add(id);
+    deleteHistory(id);
+  }
+  conversations=conversations.filter(c=>c.id!==id);
+  if(activeId===id){
+    if(conversations.length===0)newChat();
+    else{activeId=conversations[0].id;switchConvWithLoad(activeId);}
+  }
+  renderSidebar();
+}
 
 function clearAll(){if(confirm('Xóa tất cả cuộc trò chuyện?')){conversations=[];newChat()}}
 
