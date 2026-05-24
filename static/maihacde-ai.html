@@ -295,9 +295,14 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
     const access_token = params.get('access_token');
     const refresh_token = params.get('refresh_token');
     if (access_token && refresh_token) {
-      _sb.auth.setSession({ access_token, refresh_token }).then(() => {
-        // Reload clean URL so page reinitializes with session
-        window.location.replace(window.location.pathname);
+      _sb.auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
+        console.log('[setSession]', data?.session?.user?.email, error);
+        if (!error) {
+          // Small delay to ensure session is written to storage before reload
+          setTimeout(() => {
+            window.location.replace(window.location.pathname);
+          }, 500);
+        }
       });
     }
   }
