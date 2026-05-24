@@ -247,10 +247,41 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--te
     return data?.session?.access_token || null;
   }
 
+  async function apiFetch(path, options={}) {
+    const token = await getAccessToken();
+    const headers = { 'Content-Type': 'application/json', ...(options.headers||{}) };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch(path, { ...options, headers });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  async function loadHistories() {
+    try {
+      const token = await getAccessToken();
+      if (!token) return; // khách không load lịch sử
+      const data = await apiFetch('/histories');
+      renderHistorySidebar(data);
+    } catch(e) { console.warn('loadHistories:', e); }
+  }
+
+  async function loadHistoryMessages(historyId) {
+    try {
+      const data = await apiFetch('/histories/' + historyId);
+      return data; // [{role, content, created_at}]
+    } catch(e) { console.warn('loadHistoryMessages:', e); return []; }
+  }
+
+  async function deleteHistory(historyId) {
+    try { await apiFetch('/histories/' + historyId, { method: 'DELETE' }); } 
+    catch(e) { console.warn('deleteHistory:', e); }
+  }
+
   async function updateAuthUI() {
     const { data } = await _sb.auth.getSession();
     const session = data?.session;
     const loggedIn = !!session;
+    if (loggedIn) loadHistories();
 
     // Topbar
     const tLogin = document.getElementById('topbar-login-btn');
@@ -418,7 +449,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   newChat();
   setupDragDrop();
   // Run auth UI update after DOM is ready
-  updateAuthUI();
+  updateAuthUI(); // also calls loadHistories() if logged in
   // Listen for auth state changes (sign in, sign out, token refresh)
   _sb.auth.onAuthStateChange((event, session) => {
     console.log('[AUTH]', event, session?.user?.email);
@@ -432,7 +463,7 @@ function newChat(){const id='conv_'+Date.now();conversations.unshift({id,title:'
 function renderSidebar(){
   document.getElementById('history-label').style.display=conversations.length>1?'':'none';
   document.getElementById('conv-list').innerHTML=conversations.map(c=>`
-    <div class="conv-item ${c.id===activeId?'active':''}" onclick="switchConv('${c.id}')">
+    <div class="conv-item ${c.id===activeId?'active':''}" onclick="switchConvWithLoad('${c.id}')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span class="conv-title">${esc(c.title)}</span>
       <button class="del-btn" onclick="delConv(event,'${c.id}')">
@@ -440,6 +471,38 @@ function renderSidebar(){
       </button>
     </div>`).join('');
 }
+
+function renderHistorySidebar(histories) {
+  // Merge server histories into local conversations list
+  if (!histories || !histories.length) return;
+  histories.forEach(h => {
+    const exists = conversations.find(c => c.id === h.id);
+    if (!exists) {
+      conversations.unshift({ id: h.id, title: h.title || 'Cuộc trò chuyện', messages: null, _fromServer: true });
+    }
+  });
+  renderSidebar();
+}
+
+async function switchConvWithLoad(id) {
+  activeId = id;
+  const conv = conversations.find(c => c.id === id);
+  if (conv && conv._fromServer && conv.messages === null) {
+    // Load messages from server
+    const msgs = await loadHistoryMessages(id);
+    conv.messages = msgs;
+    // Render messages
+    const box = document.getElementById('messages');
+    box.innerHTML = '';
+    msgs.forEach(m => appendDOM(m.role === 'user' ? 'user' : 'ai', m.content, null, false));
+  } else if (conv && conv.messages) {
+    const box = document.getElementById('messages');
+    box.innerHTML = '';
+    conv.messages.forEach(m => appendDOM(m.role === 'user' ? 'user' : 'ai', m.content, null, false));
+  }
+  renderSidebar();
+}
+
 
 function switchConv(id){activeId=id;renderSidebar();const conv=getConv();const box=document.getElementById('messages');if(!conv||conv.messages.length===0){renderEmpty();return;}box.innerHTML='';conv.messages.forEach(m=>appendDOM(m.role,m.content,null,false))}
 
@@ -487,7 +550,7 @@ async function sendMessage(){
     const _token = await getAccessToken();
     const _headers = {'Content-Type':'application/json'};
     if (_token) _headers['Authorization'] = 'Bearer ' + _token;
-    const res=await fetch('/hoi',{method:'POST',headers:_headers,body:JSON.stringify({cau_hoi:text,image_base64:b64,image_type:'image/jpeg'})});
+    const res=await fetch('/hoi',{method:'POST',headers:_headers,body:JSON.stringify({cau_hoi:text,image_base64:b64,image_type:'image/jpeg',history_id:getConv()?.id||null})});
 
     if(!res.ok){removeTyping(typId);const err=await res.json().catch(()=>({}));throw new Error(err.detail||`HTTP ${res.status}`)}
 
@@ -531,6 +594,7 @@ function handleStreamEvent(event,data,typId){
     updateProgress(typId,99,'',true);
     removeTyping(typId);
     const conv=getConv();
+    if(data.history_id&&conv&&conv.id!==data.history_id){conv.id=data.history_id;activeId=data.history_id;}
     const tra_loi=data.tra_loi||'';
     const el=appendDOM('ai','',null,true);
     const bbl=el.querySelector('.msg-bubble');
