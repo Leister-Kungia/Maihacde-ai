@@ -550,7 +550,7 @@ async function sendMessage(){
     const _token = await getAccessToken();
     const _headers = {'Content-Type':'application/json'};
     if (_token) _headers['Authorization'] = 'Bearer ' + _token;
-    const res=await fetch('/hoi',{method:'POST',headers:_headers,body:JSON.stringify({cau_hoi:text,image_base64:b64,image_type:'image/jpeg',history_id:getConv()?.id||null})});
+    const res=await fetch('/hoi',{method:'POST',headers:_headers,body:JSON.stringify({cau_hoi:text,image_base64:b64,image_type:'image/jpeg',history_id:(()=>{const id=getConv()?.id;return id&&!id.startsWith('conv_')?id:null;})()} )});
 
     if(!res.ok){removeTyping(typId);const err=await res.json().catch(()=>({}));throw new Error(err.detail||`HTTP ${res.status}`)}
 
