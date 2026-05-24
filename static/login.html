@@ -389,12 +389,9 @@
     <div class="check-circle">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
-    <h2>Đăng ký thành công!</h2>
-    <p>Đã gửi email xác nhận tới địa chỉ email của bạn. Vui lòng kiểm tra hộp thư và nhấp vào link xác nhận.</p>
-    <button class="btn-submit" style="max-width:200px;margin:0 auto" onclick="switchTab('login')">
-      <span class="btn-text">Đăng nhập ngay</span>
-      <div class="spinner"></div>
-    </button>
+    <h2>Kiểm tra email của bạn!</h2>
+    <p id="sent-email-msg">Đã gửi email xác nhận đăng ký tài khoản tới địa chỉ email của bạn. Vui lòng mở email và nhấp vào link xác nhận để hoàn tất đăng ký.</p>
+
   </div>
 </div>
 
@@ -470,12 +467,23 @@
           }
         });
         if (error) throw error;
-        if (data?.user?.identities?.length === 0) {
-          showAlert('Email này đã được đăng ký (kể cả qua Google). Vui lòng đăng nhập.');
+        // Kiểm tra email đã tồn tại:
+        // - identities rỗng: đã đăng ký bằng email/password trước
+        // - email_confirmed_at có giá trị: đã xác nhận (kể cả qua Google)
+        // - created_at cách hiện tại > 5 giây: tài khoản không mới tạo
+        const user = data?.user;
+        const isExisting =
+          (user?.identities?.length === 0) ||
+          (user?.email_confirmed_at != null) ||
+          (user && (Date.now() - new Date(user.created_at).getTime()) > 5000);
+        if (isExisting) {
+          showAlert('Tài khoản đã đăng ký. Vui lòng đăng nhập.');
           return;
         }
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('success-screen').style.display = 'block';
+        const msgEl = document.getElementById('sent-email-msg');
+        if (msgEl) msgEl.textContent = `Đã gửi email xác nhận đăng ký tài khoản tới ${email}. Vui lòng mở email và nhấp vào link xác nhận để hoàn tất đăng ký.`;
       }
     } catch (err) {
       const msg = {
