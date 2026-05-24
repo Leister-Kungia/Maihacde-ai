@@ -141,11 +141,9 @@
         <polyline points="20 6 9 17 4 12"/>
       </svg>
     </div>
-    <h1>✨ Xác nhận thành công!</h1>
-    <p class="sub">Email đã được xác nhận. Chuyển hướng tới chat...</p>
-    <div class="footer-note">
-      Nếu không chuyển hướng tự động, <a href="/" class="btn-link">nhấp vào đây →</a>
-    </div>
+    <h1>Đã đăng ký thành công! ✓</h1>
+    <p class="sub">Kiểm tra email để xác nhận tài khoản, sau đó đăng ký nhé.</p>
+    <button class="btn" onclick="window.location.href='/login'">Đăng nhập ngay →</button>
   </div>
 
   <!-- ❌ Lỗi -->
@@ -194,13 +192,8 @@
         return;
       }
 
-      // ✅ Hiển thị thành công
+      // ✅ Hiển thị thành công (KHÔNG auto redirect)
       show('success');
-      
-      // ✅ Auto redirect đến / (chat) sau 2 giây
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
 
     } catch (err) {
       show('error');
