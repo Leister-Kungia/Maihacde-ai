@@ -391,7 +391,6 @@
     </div>
     <h2>Kiểm tra email của bạn!</h2>
     <p id="sent-email-msg">Đã gửi email xác nhận đăng ký tài khoản tới địa chỉ email của bạn. Vui lòng mở email và nhấp vào link xác nhận để hoàn tất đăng ký.</p>
-
   </div>
 </div>
 
@@ -467,23 +466,21 @@
           }
         });
         if (error) throw error;
-        // Kiểm tra email đã tồn tại:
-        // - identities rỗng: đã đăng ký bằng email/password trước
-        // - email_confirmed_at có giá trị: đã xác nhận (kể cả qua Google)
-        // - created_at cách hiện tại > 5 giây: tài khoản không mới tạo
         const user = data?.user;
         const isExisting =
-          (user?.identities?.length === 0) ||
-          (user?.email_confirmed_at != null) ||
-          (user && (Date.now() - new Date(user.created_at).getTime()) > 5000);
+          !user ||
+          (user.identities?.length === 0) ||
+          (user.email_confirmed_at != null) ||
+          (user.created_at && (Date.now() - new Date(user.created_at).getTime()) > 5000);
         if (isExisting) {
           showAlert('Tài khoản đã đăng ký. Vui lòng đăng nhập.');
           return;
         }
+        // Hiện email đã gửi
+        const msgEl = document.getElementById('sent-email-msg');
+        if (msgEl) msgEl.textContent = 'Đã gửi email xác nhận đăng ký tài khoản tới ' + email + '. Vui lòng mở email và nhấp vào link xác nhận.';
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('success-screen').style.display = 'block';
-        const msgEl = document.getElementById('sent-email-msg');
-        if (msgEl) msgEl.textContent = `Đã gửi email xác nhận đăng ký tài khoản tới ${email}. Vui lòng mở email và nhấp vào link xác nhận để hoàn tất đăng ký.`;
       }
     } catch (err) {
       const msg = {
