@@ -390,7 +390,7 @@
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <h2>Kiểm tra email của bạn!</h2>
-    <p id="sent-email-msg">Đã gửi email xác nhận đăng ký tài khoản tới địa chỉ email của bạn. Vui lòng mở email và nhấp vào link xác nhận để hoàn tất đăng ký.</p>
+    <p id="sent-email-msg">Đã gửi email xác nhận đăng ký tài khoản. Vui lòng mở email và nhấp vào link xác nhận.</p>
   </div>
 </div>
 
@@ -466,19 +466,13 @@
           }
         });
         if (error) throw error;
-        const user = data?.user;
-        const isExisting =
-          !user ||
-          (user.identities?.length === 0) ||
-          (user.email_confirmed_at != null) ||
-          (user.created_at && (Date.now() - new Date(user.created_at).getTime()) > 5000);
-        if (isExisting) {
+        const u = data?.user;
+        if (!u || u.identities?.length === 0 || u.email_confirmed_at != null ||
+            (u.created_at && Date.now() - new Date(u.created_at).getTime() > 5000)) {
           showAlert('Tài khoản đã đăng ký. Vui lòng đăng nhập.');
           return;
         }
-        // Hiện email đã gửi
-        const msgEl = document.getElementById('sent-email-msg');
-        if (msgEl) msgEl.textContent = 'Đã gửi email xác nhận đăng ký tài khoản tới ' + email + '. Vui lòng mở email và nhấp vào link xác nhận.';
+        document.getElementById('sent-email-msg').textContent = 'Đã gửi email xác nhận đăng ký tài khoản tới ' + email + '. Vui lòng mở email và nhấp vào link xác nhận.';
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('success-screen').style.display = 'block';
       }
